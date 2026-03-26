@@ -1,0 +1,28 @@
+services:
+  kinopio-selfhost:
+    image: kinopio-selfhost:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    init: true
+    env_file:
+      - .env
+    environment:
+      PORT: 3000
+      DATABASE_PATH: ${DATABASE_PATH:-/data/kinopio-selfhost.sqlite}
+      VITE_SELFHOST: "true"
+      VITE_PUBLIC_APP_ORIGIN: ${VITE_PUBLIC_APP_ORIGIN:-}
+    expose:
+      - "3000"
+    volumes:
+      - kinopio_selfhost_data:/data
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api').then((res) => process.exit(res.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+
+volumes:
+  kinopio_selfhost_data:

@@ -1,0 +1,11 @@
+node_modules
+dist
+.data
+.cert
+.env
+*.sqlite
+npm-debug.log
+Dockerfile*
+docker-compose*.yml
+.git
+.tmp-*

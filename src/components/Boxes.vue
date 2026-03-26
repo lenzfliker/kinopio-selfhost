@@ -1,0 +1,34 @@
+<script setup>
+import { reactive, computed, onMounted, onBeforeUnmount, watch, ref, nextTick } from 'vue'
+
+import { useGlobalStore } from '@/stores/useGlobalStore'
+import { useBoxStore } from '@/stores/useBoxStore'
+
+import Box from '@/components/Box.vue'
+import ItemSnapGuide from '@/components/ItemSnapGuide.vue'
+
+const globalStore = useGlobalStore()
+const boxStore = useBoxStore()
+
+const isPaintSelecting = computed(() => globalStore.currentUserIsPaintSelecting)
+const unlockedBoxes = computed(() => boxStore.getBoxesIsNotLocked)
+const lockedBoxes = computed(() => boxStore.getBoxesIsLocked)
+</script>
+
+<template lang="pug">
+.boxes(:class="{unselectable: isPaintSelecting}")
+  template(v-for="box in unlockedBoxes" :key="box.id")
+    Box(:box="box")
+    ItemSnapGuide(:box="box")
+  //- locked boxes rendered in ItemsLocked
+  template(v-for="box in lockedBoxes" :key="box.id")
+    teleport(to="#locked-boxes")
+      Box(:box="box")
+</template>
+
+<style lang="stylus">
+.boxes
+  position absolute
+  top 0
+  z-index 0
+</style>

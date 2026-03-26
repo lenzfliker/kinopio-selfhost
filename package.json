@@ -1,0 +1,118 @@
+{
+  "name": "kinopio-selfhost",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm:dev:server\" \"npm:dev:client\"",
+    "dev:client": "vite --host",
+    "dev:server": "cross-env NODE_ENV=development node server/index.mjs",
+    "build": "vite-ssg build",
+    "preview": "vite preview --host",
+    "start": "node server/index.mjs",
+    "lint": "eslint src --ext .js,.vue",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@aguezz/qs-parse": "^2.0.0",
+    "@nozbe/microfuzz": "^1.0.0",
+    "adaptive-quadratic-curve": "^1.0.2",
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.10.0",
+    "colord": "^2.9.3",
+    "dayjs": "^1.9.1",
+    "express": "^5.1.0",
+    "fractional-indexing": "^3.2.0",
+    "idb-keyval": "^6.2.1",
+    "lean-qr": "^2.6.0",
+    "lodash-es": "^4.17.23",
+    "macrolight": "^1.5.0",
+    "mime-types": "^2.1.35",
+    "multer": "^2.0.2",
+    "nanoid": "^3.3.8",
+    "overlap-area": "^1.0.0",
+    "pinia": "^3.0.2",
+    "randomcolor": "^0.5.4",
+    "shader": "^1.0.0",
+    "smartquotes": "^2.3.2",
+    "uuid": "^9.0.0",
+    "vue": "^3.5",
+    "vue-router": "^4.0.11"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.26.10",
+    "@babel/eslint-parser": "^7.23.3",
+    "@babel/preset-env": "^7.26.9",
+    "@types/lodash-es": "^4.17.3",
+    "@vitejs/plugin-vue": "^5.2.3",
+    "@vue/compiler-sfc": "^3.2.6",
+    "@vue/eslint-config-standard": "^8.0.1",
+    "@vue/test-utils": "^2.4.6",
+    "autoprefixer": "^10.4.2",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.26.2",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.0.0",
+    "eslint": "^8.56.0",
+    "eslint-plugin-vue": "^9.21.1",
+    "jsdom": "^26.1.0",
+    "lint-staged": "^13.2.1",
+    "nodemon": "^3.1.10",
+    "postcss": "^8.4.31",
+    "pug": "^3.0.3",
+    "stylus": "^0.63",
+    "stylus-loader": "^3.0.2",
+    "vite": "^6.4.1",
+    "vite-plugin-pwa": "^1.0.0",
+    "vite-plugin-sitemap": "^0.7.1",
+    "vite-ssg": "^28.0.0",
+    "vitest": "^3.2.4",
+    "yorkie": "^2.0.0"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "plugin:vue/vue3-recommended",
+      "@vue/standard"
+    ],
+    "rules": {
+      "no-throw-literal": "off",
+      "no-unused-vars": "off",
+      "vue/multi-word-component-names": "off",
+      "vue/no-reserved-component-names": "off",
+      "vue/require-default-prop": "off",
+      "array-callback-return": "off",
+      "prefer-regex-literals": "off"
+    },
+    "parserOptions": {
+      "parser": "@babel/eslint-parser",
+      "requireConfigFile": false,
+      "ecmaVersion": 2022,
+      "sourceType": "module",
+      "babelOptions": {
+        "plugins": [
+          "transform-es2015-modules-commonjs"
+        ]
+      }
+    }
+  },
+  "postcss": {
+    "plugins": {
+      "autoprefixer": {}
+    }
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions"
+  ],
+  "gitHooks": {
+    "pre-commit": "lint-staged"
+  },
+  "lint-staged": {
+    "*.{js,vue}": [
+      "eslint --fix"
+    ]
+  }
+}

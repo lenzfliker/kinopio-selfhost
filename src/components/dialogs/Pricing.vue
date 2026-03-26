@@ -1,0 +1,201 @@
+<script setup>
+import { reactive, computed, onMounted, onBeforeUnmount, watch, ref, nextTick } from 'vue'
+
+import { useGlobalStore } from '@/stores/useGlobalStore'
+import { useUserStore } from '@/stores/useUserStore'
+import { useSpaceStore } from '@/stores/useSpaceStore'
+
+import DiscountRow from '@/components/DiscountRow.vue'
+import UserLabelInline from '@/components/UserLabelInline.vue'
+import CardsCreatedProgress from '@/components/CardsCreatedProgress.vue'
+import WhoMakesKinopio from '@/components/WhoMakesKinopio.vue'
+import UpgradeFAQ from '@/components/dialogs/UpgradeFAQ.vue'
+import AboutGroups from '@/components/dialogs/AboutGroups.vue'
+import consts from '@/consts.js'
+import utils from '@/utils.js'
+import FreeLimitFAQ from '@/components/dialogs/FreeLimitFAQ.vue'
+
+const globalStore = useGlobalStore()
+const userStore = useUserStore()
+const spaceStore = useSpaceStore()
+
+const props = defineProps({
+  visible: Boolean,
+  parentIsPage: Boolean
+})
+const dialog = ref(null)
+
+let unsubscribes
+
+onMounted(() => {
+  window.addEventListener('resize', updateDialogHeight)
+  const globalActionUnsubscribe = globalStore.$onAction(
+    ({ name, args }) => {
+      if (name === 'triggerCloseChildDialogs') {
+        closeChildDialogs()
+      }
+    }
+  )
+  unsubscribes = () => {
+    globalActionUnsubscribe()
+  }
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateDialogHeight)
+  unsubscribes()
+})
+
+const state = reactive({
+  dialogHeight: null,
+  upgradeFAQIsVisible: false,
+  aboutGroupsIsVisible: false,
+  freeLimitFAQIsVisible: false
+})
+
+watch(() => props.visible, (value, prevValue) => {
+  if (value) {
+    closeChildDialogs()
+    updateDialogHeight()
+    globalStore.shouldExplicitlyHideFooter = true
+  } else {
+    globalStore.shouldExplicitlyHideFooter = false
+  }
+})
+
+const updateDialogHeight = async () => {
+  if (!props.visible) { return }
+  await nextTick()
+  state.dialogHeight = utils.elementHeight(dialog.value)
+}
+
+const isSecureAppContextIOS = computed(() => consts.isSecureAppContextIOS)
+const studentDiscountIsAvailable = computed(() => userStore.studentDiscountIsAvailable)
+const monthlyPrice = computed(() => consts.price('month').amount)
+const yearlyPrice = computed(() => {
+  const isStudentDiscount = userStore.studentDiscountIsAvailable
+  return consts.price('year', isStudentDiscount).amount
+})
+const lifetimePrice = computed(() => consts.price('life').amount)
+
+// child dialogs
+
+const toggleUpgradeFAQIsVisible = () => {
+  const value = !state.upgradeFAQIsVisible
+  closeDialogs()
+  state.upgradeFAQIsVisible = value
+}
+const toggleAboutGroupsIsVisible = () => {
+  const value = !state.aboutGroupsIsVisible
+  closeDialogs()
+  state.aboutGroupsIsVisible = value
+}
+const toggleFreeLimitFAQIsVisible = () => {
+  const value = !state.freeLimitFAQIsVisible
+  closeDialogs()
+  state.freeLimitFAQIsVisible = value
+}
+const closeDialogs = () => {
+  globalStore.triggerCloseChildDialogs()
+}
+const closeChildDialogs = () => {
+  state.upgradeFAQIsVisible = false
+  state.aboutGroupsIsVisible = false
+  state.freeLimitFAQIsVisible = false
+}
+
+// free cards from space member
+
+const spaceCreatorIsUpgraded = computed(() => spaceStore.getSpaceCreatorIsUpgraded)
+const spaceUser = computed(() => spaceStore.users[0])
+const freeCardsCreatedLimit = computed(() => consts.freeCardsCreatedLimit)
+const freeUploadSizeLimit = computed(() => consts.freeUploadSizeLimit)
+
+</script>
+
+<template lang="pug">
+dialog.pricing(v-if="visible" :open="visible" @click.left.stop="closeDialogs" ref="dialog" :style="{'max-height': state.dialogHeight + 'px'}")
+  section.title-section
+    p Pricing
+  section
+    .row.title-row.free-limit-row
+      //- price
+      template(v-if="isSecureAppContextIOS")
+        p Kinopio is free for
+          button.small-button(@click.stop="toggleFreeLimitFAQIsVisible" :class="{active: state.freeLimitFAQIsVisible}")
+            span {{freeCardsCreatedLimit}} cards
+          span afterwards it's ${{monthlyPrice}}/month or ${{yearlyPrice}}/year.
+      template(v-else)
+        p Kinopio is free for
+          button.small-button(@click.stop="toggleFreeLimitFAQIsVisible" :class="{active: state.freeLimitFAQIsVisible}")
+            span {{freeCardsCreatedLimit}} cards
+          span afterwards it's ${{monthlyPrice}}/month, ${{yearlyPrice}}/year, or ${{lifetimePrice}}/life.
+
+      FreeLimitFAQ(:visible="state.freeLimitFAQIsVisible")
+
+      .button-wrap
+        button.small-button(@click.stop="toggleUpgradeFAQIsVisible" :class="{active: state.upgradeFAQIsVisible}")
+          span ?
+          UpgradeFAQ(:visible="state.upgradeFAQIsVisible")
+    p.badge.success(v-if="studentDiscountIsAvailable") Your account qualifies for a student discount
+    DiscountRow
+    table
+      tbody
+        tr.table-header
+          td
+            span Free
+          td
+            span.badge.success Upgraded
+        tr
+          td {{freeCardsCreatedLimit}} cards
+          td Unlimited cards
+        tr
+          td {{freeUploadSizeLimit}}mb file upload size limit
+          td No upload limit
+        tr
+          td Can only join Groups
+          td
+            .row
+              span Can create Groups
+              button.small-button(@click.stop="toggleAboutGroupsIsVisible" :class="{ active: state.aboutGroupsIsVisible }" title="About Groups")
+                span ?
+                AboutGroups(:visible="state.aboutGroupsIsVisible")
+    template(v-if="!props.parentIsPage")
+      CardsCreatedProgress
+      //- free cards from space member
+      section.subsection(v-if="spaceCreatorIsUpgraded")
+        p
+          UserLabelInline(:user="spaceUser")
+          span is upgraded, so cards you create in this space won't increase your free card count
+  section
+    WhoMakesKinopio
+</template>
+
+<style lang="stylus">
+dialog.pricing
+  left initial
+  right 8px
+  max-height calc(100vh - 25px)
+  @media(max-width 500px)
+    right -100px
+  p
+    user-select text
+  .subsection
+    margin-top 10px
+  table
+    td
+      max-width 120px
+  .title-row
+    align-items flex-start
+    .button-wrap,
+    .small-button
+      margin-top 0
+  dialog.about-groups
+    top -100px
+    right 16px
+  .free-limit-row
+    button
+      margin-left 5px
+    dialog.free-limit-faq
+      top 18px
+
+</style>

@@ -4,7 +4,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: kinopio-selfhost
     init: true
     ports:
       - "${PORT:-3000}:3000"

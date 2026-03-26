@@ -157,6 +157,28 @@ View logs:
 docker compose logs -f
 ```
 
+## Dokploy
+
+Dokploy can deploy this repo directly from GitHub.
+
+Recommended Dokploy setup:
+
+1. Create a new project in Dokploy.
+2. Create a new service of type `Compose` with Compose Type `Docker Compose`.
+3. Choose provider `GitHub` or `Git`.
+4. Select this repository and the `main` branch.
+5. Set the Compose Path to `./docker-compose.yml`.
+6. Add the same variables from [`.env.example`](./.env.example) in the Dokploy environment settings.
+7. Deploy the service.
+8. Attach your domain in the Dokploy Domains tab.
+9. Set `VITE_PUBLIC_APP_ORIGIN` to the final HTTPS URL you assign in Dokploy.
+
+Notes for Dokploy:
+
+- Dokploy recommends configuring domains in the Dokploy UI instead of adding Traefik labels manually.
+- The compose file is intentionally simple and should work as-is in Dokploy.
+- Do not commit a real `.env`; keep secrets in Dokploy environment variables or a local untracked `.env`.
+
 ## Self-Host Guide
 
 This build is aimed at one real editor account.
